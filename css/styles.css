@@ -181,7 +181,28 @@ button {
   margin: 0; font-size: 16px; font-weight: 650; letter-spacing: -.01em;
   line-height: 1.25;
 }
-.creator-handle { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+.handle-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.copy-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  margin: 0; padding: 4px 8px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px; font-weight: 550;
+  max-width: 100%;
+  line-height: 1.2;
+}
+.copy-chip:active { background: var(--surface2); }
+.copy-chip-label {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: .04em; text-transform: uppercase;
+  color: var(--muted);
+  background: var(--surface2);
+  padding: 1px 5px; border-radius: 4px;
+  flex-shrink: 0;
+}
+.copy-chip-handle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.copy-icon { width: 13px; height: 13px; opacity: .75; flex-shrink: 0; }
 .fav-btn {
   width: 36px; height: 36px; border-radius: 10px;
   color: var(--muted);

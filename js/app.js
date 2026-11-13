@@ -42,6 +42,94 @@
     toast._t = setTimeout(() => el.classList.remove("show"), 1800);
   }
 
+  function isStandalone() {
+    return window.navigator.standalone === true ||
+      (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+  }
+
+  function copyViaTextarea(text) {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.setAttribute("aria-hidden", "true");
+    ta.style.position = "fixed";
+    ta.style.top = "0";
+    ta.style.left = "0";
+    ta.style.width = "1px";
+    ta.style.height = "1px";
+    ta.style.padding = "0";
+    ta.style.border = "0";
+    ta.style.outline = "none";
+    ta.style.boxShadow = "none";
+    ta.style.background = "transparent";
+    ta.style.opacity = "0";
+    ta.style.fontSize = "16px";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+    let ok = false;
+    try {
+      ok = document.execCommand("copy");
+    } catch (e) {
+      ok = false;
+    }
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  function copyText(text) {
+    // iOS Safari standalone often blocks the Clipboard API after the
+    // user-gesture window; execCommand in the same tap is more reliable.
+    if (isStandalone()) {
+      if (copyViaTextarea(text)) return Promise.resolve(true);
+    }
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+      return navigator.clipboard.writeText(text)
+        .then(() => true)
+        .catch(() => copyViaTextarea(text));
+    }
+    return Promise.resolve(copyViaTextarea(text));
+  }
+
+  function handleFromUrl(url) {
+    if (!url) return "";
+    const m = String(url).match(/(?:x\.com|twitter\.com)\/([^/?#]+)/i);
+    if (!m) return "";
+    try {
+      return decodeURIComponent(m[1]).replace(/^@/, "");
+    } catch (e) {
+      return m[1].replace(/^@/, "");
+    }
+  }
+
+  const COPY_ICON =
+    '<svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
+
+  function copyChip(handle, label) {
+    const at = "@" + handle;
+    const aria = label ? "Copy " + label + " handle " + at : "Copy " + at;
+    return (
+      '<button class="copy-chip" type="button" data-copy="' + escapeHtml(at) + '" aria-label="' + escapeHtml(aria) + '">' +
+        (label ? '<span class="copy-chip-label">' + escapeHtml(label) + "</span>" : "") +
+        '<span class="copy-chip-handle">@' + escapeHtml(handle) + "</span>" +
+        COPY_ICON +
+      "</button>"
+    );
+  }
+
+  function handleChips(c) {
+    const ofHandle = c.handle || "";
+    const xHandle = handleFromUrl(c.links && c.links.x);
+    const chips = [];
+    if (ofHandle) {
+      const distinctX = xHandle && xHandle.toLowerCase() !== ofHandle.toLowerCase();
+      chips.push(copyChip(ofHandle, distinctX ? "OF" : ""));
+      if (distinctX) chips.push(copyChip(xHandle, "X"));
+    }
+    return '<div class="handle-row">' + chips.join("") + "</div>";
+  }
+
   async function sha256(str) {
     const data = new TextEncoder().encode(str);
     const buf = await crypto.subtle.digest("SHA-256", data);
@@ -271,7 +359,7 @@
           '<div class="avatar" aria-hidden="true">' + escapeHtml(initial(c.name)) + "</div>" +
           '<div class="creator-meta">' +
             '<p class="creator-name">' + escapeHtml(c.name) + "</p>" +
-            '<p class="creator-handle">@' + escapeHtml(c.handle) + "</p>" +
+            handleChips(c) +
           "</div>" +
           '<button class="fav-btn' + (on ? " on" : "") + '" type="button" data-fav="' + escapeHtml(c.id) + '" aria-label="' + (on ? "Remove favorite" : "Add favorite") + '">' +
             (on
@@ -310,6 +398,15 @@
   function bindFavButtons(root) {
     $$("[data-fav]", root).forEach((btn) => {
       btn.addEventListener("click", () => toggleFav(btn.getAttribute("data-fav")));
+    });
+    $$("[data-copy]", root).forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const value = btn.getAttribute("data-copy") || "";
+        if (!value) return;
+        copyText(value).then((ok) => {
+          toast(ok ? "Copied " + value : "Couldn’t copy");
+        });
+      });
     });
   }
 
