@@ -7,7 +7,8 @@
     pinSalt: "index_pin_salt",
     pinEnabled: "index_pin_enabled",
     favorites: "index_favorites",
-    ageOk: "index_age_ok"
+    ageOk: "index_age_ok",
+    activeOnly: "index_active_only"
   };
 
   const TAG_LABELS = {
@@ -32,6 +33,7 @@
     query: "",
     tag: "all",
     sort: "name",
+    activeOnly: true,
     favorites: []
   };
 
@@ -311,17 +313,28 @@
   function filtered() {
     const q = state.query.trim().toLowerCase();
     let list = state.creators.slice();
+    if (state.activeOnly) {
+      list = list.filter((c) => c.status === "active");
+    }
     if (state.tag !== "all") {
       list = list.filter((c) => (c.tags || []).indexOf(state.tag) !== -1);
     }
     if (q) {
       list = list.filter((c) => {
-        const blob = [c.name, c.handle, c.description, (c.tags || []).join(" "), c.price || ""].join(" ").toLowerCase();
+        const blob = [c.name, c.handle, c.description, (c.tags || []).join(" "), c.price || "", c.xUsername || ""].join(" ").toLowerCase();
         return blob.indexOf(q) !== -1;
       });
     }
     list.sort((a, b) => {
-      if (state.sort === "free") {
+      if (state.sort === "followers") {
+        const af = Number(a.xFollowers) || 0;
+        const bf = Number(b.xFollowers) || 0;
+        if (af !== bf) return bf - af;
+      } else if (state.sort === "recent") {
+        const ad = a.lastActive || "";
+        const bd = b.lastActive || "";
+        if (ad !== bd) return bd < ad ? -1 : 1;
+      } else if (state.sort === "free") {
         const ar = a.access === "free" ? 0 : a.access === "free-trial" ? 1 : 2;
         const br = b.access === "free" ? 0 : b.access === "free-trial" ? 1 : 2;
         if (ar !== br) return ar - br;
@@ -349,6 +362,35 @@
     if (c.access === "free") return "access-free";
     if (c.access === "free-trial") return "access-free-trial";
     return "access-paid";
+  }
+
+  function formatFollowers(n) {
+    n = Number(n) || 0;
+    if (n >= 1000000) return (n / 1000000).toFixed(n % 1000000 === 0 ? 0 : 1).replace(/\.0$/, "") + "M";
+    if (n >= 1000) return (n / 1000).toFixed(n >= 10000 || n % 1000 === 0 ? 0 : 1).replace(/\.0$/, "") + "k";
+    return String(n);
+  }
+
+  function formatLastActive(iso) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  }
+
+  function statusBadge(c) {
+    if (c.status === "active") return '<span class="status-badge is-active">Active</span>';
+    if (c.status === "inactive") return '<span class="status-badge is-inactive">Inactive</span>';
+    if (!state.activeOnly) return '<span class="status-badge is-unknown">Unverified</span>';
+    return "";
+  }
+
+  function activityLine(c) {
+    const bits = [];
+    if (c.xFollowers) bits.push(formatFollowers(c.xFollowers) + " on X");
+    const last = formatLastActive(c.lastActive);
+    if (last) bits.push("posted " + last);
+    return bits.length ? '<p class="creator-activity">' + escapeHtml(bits.join(" · ")) + "</p>" : "";
   }
 
   function avatarHtml(c) {
@@ -379,8 +421,12 @@
         '<div class="creator-top">' +
           avatarHtml(c) +
           '<div class="creator-meta">' +
-            '<p class="creator-name">' + escapeHtml(c.name) + "</p>" +
+            '<div class="creator-name-row">' +
+              '<p class="creator-name">' + escapeHtml(c.name) + "</p>" +
+              statusBadge(c) +
+            "</div>" +
             handleChips(c) +
+            activityLine(c) +
           "</div>" +
           '<button class="fav-btn' + (on ? " on" : "") + '" type="button" data-fav="' + escapeHtml(c.id) + '" aria-label="' + (on ? "Remove favorite" : "Add favorite") + '">' +
             (on
@@ -403,7 +449,12 @@
     const box = $("#creator-list");
     box.innerHTML = list.map(cardHtml).join("");
     $("#empty-dir").classList.toggle("hidden", list.length > 0);
-    $("#result-count").textContent = list.length + " of " + state.creators.length;
+    const activeN = state.creators.filter((c) => c.status === "active").length;
+    if (state.activeOnly) {
+      $("#result-count").textContent = list.length + " of " + activeN + " active";
+    } else {
+      $("#result-count").textContent = list.length + " of " + state.creators.length;
+    }
     bindFavButtons(box);
   }
 
@@ -470,7 +521,10 @@
 
   function renderAll() {
     const n = state.creators.length;
-    $("#header-sub").textContent = n ? n + " creators · updated " + formatUpdated(state.updated) : "";
+    const activeN = state.creators.filter((c) => c.status === "active").length;
+    $("#header-sub").textContent = n
+      ? activeN + " active · " + n + " total · updated " + formatUpdated(state.updated)
+      : "";
     renderChips();
     renderList();
     renderFavorites();
@@ -523,6 +577,13 @@
       state.sort = e.target.value;
       renderList();
     });
+    $("#active-only").addEventListener("click", () => {
+      state.activeOnly = !state.activeOnly;
+      localStorage.setItem(LS.activeOnly, state.activeOnly ? "1" : "0");
+      $("#active-only").classList.toggle("on", state.activeOnly);
+      $("#active-only").setAttribute("aria-pressed", state.activeOnly ? "true" : "false");
+      renderList();
+    });
     $("#pin-toggle").addEventListener("click", () => {
       if (pinEnabled()) {
         localStorage.setItem(LS.pinEnabled, "0");
@@ -560,6 +621,13 @@
 
   async function init() {
     state.favorites = loadJSON(LS.favorites, []);
+    const savedActive = localStorage.getItem(LS.activeOnly);
+    state.activeOnly = savedActive === null ? true : savedActive !== "0";
+    const btn = $("#active-only");
+    if (btn) {
+      btn.classList.toggle("on", state.activeOnly);
+      btn.setAttribute("aria-pressed", state.activeOnly ? "true" : "false");
+    }
     bind();
     try {
       await loadCreators();

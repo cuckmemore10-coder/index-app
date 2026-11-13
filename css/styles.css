@@ -191,7 +191,7 @@ button {
   .chip.chip-extreme.active { animation: none; }
 }
 
-.toolbar {
+.toolbar { flex-wrap: wrap;
   display: flex; align-items: center; justify-content: space-between;
   gap: 10px; margin-bottom: 12px;
 }
@@ -344,4 +344,41 @@ button {
 
 @media (min-width: 700px) {
   .view { padding-top: 20px; }
+}
+
+.creator-name-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.status-badge {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: .04em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 999px;
+  line-height: 1.3;
+}
+.status-badge.is-active {
+  color: #30d158;
+  background: rgba(48,209,88,.16);
+}
+.status-badge.is-inactive {
+  color: #8e8e93;
+  background: rgba(142,142,147,.16);
+}
+.status-badge.is-unknown {
+  color: #8e8e93;
+  background: rgba(142,142,147,.10);
+}
+.creator-activity {
+  margin: 4px 0 0;
+  font-size: 11px; color: var(--muted);
+  font-weight: 500;
+}
+.active-toggle {
+  padding: 7px 12px; border-radius: 999px;
+  background: var(--surface2); color: var(--muted);
+  font-size: 13px; font-weight: 650;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.active-toggle.on {
+  color: #30d158;
+  background: rgba(48,209,88,.16);
+  border-color: rgba(48,209,88,.35);
 }

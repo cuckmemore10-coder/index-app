@@ -76,11 +76,14 @@
           <span>Sort</span>
           <select id="sort" class="field compact">
             <option value="name">Name</option>
+            <option value="followers">Most followers</option>
+            <option value="recent">Recently active</option>
             <option value="free">Free first</option>
             <option value="paid">Paid first</option>
             <option value="extreme">Extreme first</option>
           </select>
         </label>
+        <button id="active-only" class="active-toggle on" type="button" aria-pressed="true">Active only</button>
         <span class="hint" id="result-count"></span>
       </div>
       <div id="creator-list"></div>
