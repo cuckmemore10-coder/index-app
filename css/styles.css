@@ -142,6 +142,55 @@ button {
   color: #7cc4ff;
   border-color: rgba(10,132,255,.35);
 }
+.chip.chip-extreme {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 13px;
+  font-weight: 700;
+  letter-spacing: .01em;
+  color: #fff;
+  background: linear-gradient(135deg, #ff2d55 0%, #ff453a 58%, #ff6b3d 100%);
+  border-color: rgba(255,255,255,.16);
+  box-shadow: 0 0 10px rgba(255,45,85,.4), 0 1px 0 rgba(255,255,255,.12) inset;
+  animation: extreme-pulse 2.4s ease-in-out infinite;
+}
+.chip.chip-extreme .chip-flame {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+.chip.chip-extreme.active {
+  color: #fff;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff2d55 48%, #ff3b30 100%);
+  border-color: rgba(255,255,255,.28);
+  box-shadow:
+    0 0 0 2px rgba(255,255,255,.18),
+    0 0 16px rgba(255,45,85,.6),
+    0 1px 0 rgba(255,255,255,.2) inset;
+  animation: extreme-pulse-strong 1.8s ease-in-out infinite;
+}
+.chip.chip-extreme:active {
+  transform: scale(.97);
+  filter: brightness(1.08);
+}
+@keyframes extreme-pulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(255,45,85,.35), 0 1px 0 rgba(255,255,255,.12) inset; }
+  50% { box-shadow: 0 0 18px rgba(255,45,85,.55), 0 0 0 3px rgba(255,45,85,.12), 0 1px 0 rgba(255,255,255,.12) inset; }
+}
+@keyframes extreme-pulse-strong {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(255,255,255,.16), 0 0 14px rgba(255,45,85,.5), 0 1px 0 rgba(255,255,255,.2) inset;
+  }
+  50% {
+    box-shadow: 0 0 0 2px rgba(255,255,255,.28), 0 0 22px rgba(255,45,85,.7), 0 1px 0 rgba(255,255,255,.2) inset;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chip.chip-extreme,
+  .chip.chip-extreme.active { animation: none; }
+}
+
 .toolbar {
   display: flex; align-items: center; justify-content: space-between;
   gap: 10px; margin-bottom: 12px;

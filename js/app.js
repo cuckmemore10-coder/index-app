@@ -434,12 +434,24 @@
   function renderChips() {
     const used = {};
     state.creators.forEach((c) => (c.tags || []).forEach((t) => { used[t] = true; }));
-    const order = ["hotwife", "cuckold", "cuckquean", "couple", "bbc", "femdom-cuck", "bnwo", "snowbunny", "qos", "extreme"];
+    const order = ["extreme", "hotwife", "cuckold", "cuckquean", "couple", "bbc", "femdom-cuck", "bnwo", "snowbunny", "qos"];
     const tags = order.filter((t) => used[t]);
     const box = $("#tag-chips");
-    const items = [{ id: "all", label: "All" }].concat(tags.map((t) => ({ id: t, label: TAG_LABELS[t] || t })));
+    const items = tags.map((t) => ({ id: t, label: TAG_LABELS[t] || t }));
+    if (items[0] && items[0].id === "extreme") {
+      items.splice(1, 0, { id: "all", label: "All" });
+    } else {
+      items.unshift({ id: "all", label: "All" });
+    }
+    const flame = '<svg class="chip-flame" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8.3 1.2c.2 1.7-.4 2.9-1.4 4-1.2 1.3-2.4 2.6-2.4 4.5 0 2.7 2 4.8 4.5 4.8s4.5-2.1 4.5-4.8c0-2.2-1-3.6-2.3-5.3-.3 1.1-.8 1.9-1.6 2.6 1.3-2.6 1.1-4 1.3-5.8z"/></svg>';
     box.innerHTML = items
-      .map((t) => '<button class="chip' + (state.tag === t.id ? " active" : "") + '" type="button" data-tag="' + t.id + '">' + escapeHtml(t.label) + "</button>")
+      .map((t) => {
+        const on = state.tag === t.id ? " active" : "";
+        const extreme = t.id === "extreme";
+        const cls = "chip" + (extreme ? " chip-extreme" : "") + on;
+        const icon = extreme ? flame : "";
+        return '<button class="' + cls + '" type="button" data-tag="' + t.id + '">' + icon + escapeHtml(t.label) + "</button>";
+      })
       .join("");
     $$("[data-tag]", box).forEach((btn) => {
       btn.addEventListener("click", () => {
