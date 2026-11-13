@@ -18,7 +18,9 @@
     bbc: "BBC",
     "femdom-cuck": "Femdom-cuck",
     bnwo: "BNWO",
-    snowbunny: "Snowbunny"
+    snowbunny: "Snowbunny",
+    qos: "QoS",
+    extreme: "Extreme"
   };
 
   const state = {
@@ -327,6 +329,10 @@
         const ar = a.access === "paid" ? 0 : a.access === "free-trial" ? 1 : 2;
         const br = b.access === "paid" ? 0 : b.access === "free-trial" ? 1 : 2;
         if (ar !== br) return ar - br;
+      } else if (state.sort === "extreme") {
+        const ar = (a.tags || []).indexOf("extreme") !== -1 ? 0 : 1;
+        const br = (b.tags || []).indexOf("extreme") !== -1 ? 0 : 1;
+        if (ar !== br) return ar - br;
       }
       return String(a.name || "").localeCompare(String(b.name || ""), undefined, { sensitivity: "base" });
     });
@@ -361,7 +367,7 @@
   function cardHtml(c) {
     const on = isFav(c.id);
     const tags = (c.tags || [])
-      .map((t) => '<span class="tag">' + escapeHtml(TAG_LABELS[t] || t) + "</span>")
+      .map((t) => '<span class="tag' + (t === "extreme" || t === "qos" ? " tag-" + t : "") + '">' + escapeHtml(TAG_LABELS[t] || t) + "</span>")
       .join("");
     const links = [];
     const of = (c.links && c.links.onlyfans) || c.onlyfans;
@@ -428,7 +434,7 @@
   function renderChips() {
     const used = {};
     state.creators.forEach((c) => (c.tags || []).forEach((t) => { used[t] = true; }));
-    const order = ["hotwife", "cuckold", "cuckquean", "couple", "bbc", "femdom-cuck", "bnwo", "snowbunny"];
+    const order = ["hotwife", "cuckold", "cuckquean", "couple", "bbc", "femdom-cuck", "bnwo", "snowbunny", "qos", "extreme"];
     const tags = order.filter((t) => used[t]);
     const box = $("#tag-chips");
     const items = [{ id: "all", label: "All" }].concat(tags.map((t) => ({ id: t, label: TAG_LABELS[t] || t })));

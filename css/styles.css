@@ -236,6 +236,8 @@ button {
 .tag.access-free { color: var(--ok); background: rgba(48,209,88,.12); }
 .tag.access-paid { color: #7cc4ff; background: var(--accent-soft); }
 .tag.access-free-trial { color: #ffd60a; background: rgba(255,214,10,.12); }
+.tag.tag-qos { color: #e8d5a3; background: rgba(201,162,39,.16); }
+.tag.tag-extreme { color: #ff8fa3; background: rgba(255,55,95,.16); }
 .link-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .link-row a {
   display: inline-flex; align-items: center; gap: 6px;
