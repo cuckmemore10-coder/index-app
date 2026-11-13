@@ -16,7 +16,9 @@
     cuckquean: "Cuckquean",
     couple: "Couple",
     bbc: "BBC",
-    "femdom-cuck": "Femdom-cuck"
+    "femdom-cuck": "Femdom-cuck",
+    bnwo: "BNWO",
+    snowbunny: "Snowbunny"
   };
 
   const state = {
@@ -426,7 +428,7 @@
   function renderChips() {
     const used = {};
     state.creators.forEach((c) => (c.tags || []).forEach((t) => { used[t] = true; }));
-    const order = ["hotwife", "cuckold", "cuckquean", "couple", "bbc", "femdom-cuck"];
+    const order = ["hotwife", "cuckold", "cuckquean", "couple", "bbc", "femdom-cuck", "bnwo", "snowbunny"];
     const tags = order.filter((t) => used[t]);
     const box = $("#tag-chips");
     const items = [{ id: "all", label: "All" }].concat(tags.map((t) => ({ id: t, label: TAG_LABELS[t] || t })));
