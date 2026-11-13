@@ -343,6 +343,19 @@
     return "access-paid";
   }
 
+  function avatarHtml(c) {
+    const init = escapeHtml(initial(c.name));
+    if (c.avatar) {
+      return (
+        '<div class="avatar" aria-hidden="true">' +
+          '<img src="' + escapeHtml(c.avatar) + '" alt="" width="48" height="48" loading="lazy" decoding="async" onerror="this.remove()">' +
+          init +
+        "</div>"
+      );
+    }
+    return '<div class="avatar" aria-hidden="true">' + init + "</div>";
+  }
+
   function cardHtml(c) {
     const on = isFav(c.id);
     const tags = (c.tags || [])
@@ -356,7 +369,7 @@
     return (
       '<article class="creator-card" data-id="' + escapeHtml(c.id) + '">' +
         '<div class="creator-top">' +
-          '<div class="avatar" aria-hidden="true">' + escapeHtml(initial(c.name)) + "</div>" +
+          avatarHtml(c) +
           '<div class="creator-meta">' +
             '<p class="creator-name">' + escapeHtml(c.name) + "</p>" +
             handleChips(c) +
