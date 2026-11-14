@@ -313,12 +313,19 @@
   function filtered() {
     const q = state.query.trim().toLowerCase();
     let list = state.creators.slice();
-    if (state.activeOnly) {
+    const tagActiveN = state.creators.filter((c) => {
+      if (c.status !== "active") return false;
+      return state.tag === "all" || (c.tags || []).indexOf(state.tag) !== -1;
+    }).length;
+    const extremeFallback = state.tag === "extreme" && state.activeOnly && tagActiveN < 10;
+    if (state.activeOnly && !extremeFallback) {
       list = list.filter((c) => c.status === "active");
     }
     if (state.tag !== "all") {
       list = list.filter((c) => (c.tags || []).indexOf(state.tag) !== -1);
     }
+    list._extremeFallback = extremeFallback;
+    list._tagActiveN = tagActiveN;
     if (q) {
       list = list.filter((c) => {
         const blob = [c.name, c.handle, c.description, (c.tags || []).join(" "), c.price || "", c.xUsername || ""].join(" ").toLowerCase();
@@ -450,10 +457,26 @@
     box.innerHTML = list.map(cardHtml).join("");
     $("#empty-dir").classList.toggle("hidden", list.length > 0);
     const activeN = state.creators.filter((c) => c.status === "active").length;
-    if (state.activeOnly) {
-      $("#result-count").textContent = list.length + " of " + activeN + " active";
+    const tagLabel = state.tag === "all" ? "" : (TAG_LABELS[state.tag] || state.tag);
+    const tagTotal = state.tag === "all" ? state.creators.length : state.creators.filter((c) => (c.tags || []).indexOf(state.tag) !== -1).length;
+    const tagActiveN = list._tagActiveN != null ? list._tagActiveN : activeN;
+    const note = $("#filter-note");
+    if (list._extremeFallback) {
+      $("#result-count").textContent = list.length + " Extreme · " + tagActiveN + " active";
+      note.textContent = "Only " + tagActiveN + " Extreme creators are verified active, so all Extreme entries are shown.";
+      note.classList.remove("hidden");
     } else {
-      $("#result-count").textContent = list.length + " of " + state.creators.length;
+      note.classList.add("hidden");
+      note.textContent = "";
+      if (state.tag !== "all" && state.activeOnly) {
+        $("#result-count").textContent = list.length + " of " + tagActiveN + " active " + tagLabel;
+      } else if (state.tag !== "all") {
+        $("#result-count").textContent = list.length + " of " + tagTotal + " " + tagLabel;
+      } else if (state.activeOnly) {
+        $("#result-count").textContent = list.length + " of " + activeN + " active";
+      } else {
+        $("#result-count").textContent = list.length + " of " + state.creators.length;
+      }
     }
     bindFavButtons(box);
   }
